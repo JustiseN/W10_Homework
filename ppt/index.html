@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>平底鍋煎牛排入門</title>
+<meta name="description" content="以煎牛排 LLM Wiki 為知識來源的新手教學簡報">
+<style>
+  :root {
+    --bg: #17120f;
+    --bg-2: #211a15;
+    --card: #2a211b;
+    --line: #3d3128;
+    --text: #f4ece1;
+    --muted: #b9aa98;
+    --crust: #c8742f;
+    --gold: #e9b264;
+    --rare: #e07a7f;
+    --ok: #7cc08a;
+    --bad: #e46a5a;
+    --info: #7fb2d9;
+    --radius: 14px;
+    --font: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", "Heiti TC", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    line-height: 1.6;
+    overflow: hidden;
+  }
+
+  /* ---------- deck ---------- */
+  .deck { position: fixed; inset: 0; }
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: clamp(20px, 5vw, 72px) clamp(16px, 7vw, 120px) 88px;
+    opacity: 0; visibility: hidden;
+    transform: translateX(24px);
+    transition: opacity .35s ease, transform .35s ease, visibility .35s;
+    overflow-y: auto;
+    background:
+      radial-gradient(1200px 600px at 100% 0%, rgba(200,116,47,.10), transparent 60%),
+      var(--bg);
+  }
+  .slide.active { opacity: 1; visibility: visible; transform: none; }
+  .slide.prev { transform: translateX(-24px); }
+  .inner { width: 100%; max-width: 1120px; margin: 0 auto; }
+
+  /* ---------- type ---------- */
+  .kicker {
+    display: inline-block; font-size: clamp(12px, 1.3vw, 15px); letter-spacing: .12em;
+    color: var(--gold); text-transform: uppercase; margin-bottom: .6em; font-weight: 700;
+  }
+  h1 { font-size: clamp(34px, 6vw, 72px); line-height: 1.15; margin: 0 0 .3em; font-weight: 800; }
+  h2 { font-size: clamp(26px, 3.8vw, 46px); line-height: 1.2; margin: 0 0 .6em; font-weight: 800; }
+  h3 { font-size: clamp(17px, 1.8vw, 22px); margin: 0 0 .4em; }
+  p, li { font-size: clamp(15px, 1.6vw, 21px); }
+  .lead { font-size: clamp(17px, 2vw, 26px); color: var(--muted); max-width: 46em; }
+  .muted { color: var(--muted); }
+  .small { font-size: clamp(13px, 1.2vw, 15px); }
+  strong { color: var(--gold); }
+  .hl-crust { color: var(--crust); }
+  .hl-rare { color: var(--rare); }
+  ul.clean { list-style: none; padding: 0; margin: 0; }
+  ul.clean li { padding: .35em 0 .35em 1.6em; position: relative; }
+  ul.clean li::before { content: "—"; position: absolute; left: 0; color: var(--crust); }
+
+  /* ---------- layout helpers ---------- */
+  .grid { display: grid; gap: clamp(12px, 2vw, 24px); }
+  .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: clamp(14px, 2vw, 24px);
+  }
+  .card h3 { color: var(--text); }
+  .card p { margin: .2em 0 0; color: var(--muted); font-size: clamp(14px, 1.4vw, 18px); }
+  .big-num { font-size: clamp(30px, 4.2vw, 54px); font-weight: 800; line-height: 1.1; color: var(--gold); }
+  .tag {
+    display: inline-block; font-size: 13px; padding: .1em .6em; border-radius: 99px;
+    border: 1px solid currentColor; margin-right: .4em; font-weight: 700;
+  }
+  .ok { color: var(--ok); } .bad { color: var(--bad); } .info { color: var(--info); }
+  .callout {
+    border-left: 4px solid var(--crust); background: var(--bg-2);
+    padding: .8em 1.1em; border-radius: 0 var(--radius) var(--radius) 0; margin-top: 1.2em;
+  }
+  .callout.warn { border-color: var(--rare); }
+  .callout p { margin: 0; }
+  .source {
+    margin-top: 1.6em; font-size: 13px; color: var(--muted);
+    border-top: 1px dashed var(--line); padding-top: .7em;
+  }
+  .source code { color: var(--gold); background: none; font-family: ui-monospace, Consolas, monospace; }
+
+  /* ---------- title slide ---------- */
+  .title-slide h1 span { color: var(--crust); }
+  .steak-art { width: min(360px, 70vw); margin-top: 1.4em; }
+
+  /* ---------- flow ---------- */
+  .flow { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; counter-reset: step; }
+  .flow .step {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 12px; text-align: center; position: relative; counter-increment: step;
+  }
+  .flow .step::before {
+    content: counter(step); display: grid; place-items: center;
+    width: 30px; height: 30px; margin: 0 auto 8px; border-radius: 50%;
+    background: var(--crust); color: #fff; font-weight: 800; font-size: 15px;
+  }
+  .flow .step b { display: block; font-size: clamp(15px, 1.6vw, 20px); }
+  .flow .step span { display: block; font-size: clamp(12px, 1.2vw, 15px); color: var(--muted); margin-top: 4px; }
+
+  /* ---------- scales ---------- */
+  .scale { position: relative; margin: 5em 0 5.4em; }
+  .scale .bar {
+    height: 16px; border-radius: 99px;
+    background: linear-gradient(90deg, #5aa0d6 0%, #e07a7f 35%, #c8742f 65%, #7a3b14 100%);
+  }
+  .scale .mark { position: absolute; top: -6px; transform: translateX(-50%); text-align: center; }
+  .scale .mark i { display: block; width: 3px; height: 28px; background: var(--text); margin: 0 auto; border-radius: 2px; }
+  .scale .mark .lbl {
+    position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap;
+    font-size: clamp(11px, 1.15vw, 14px); line-height: 1.3;
+  }
+  .scale .mark.up .lbl { bottom: 34px; }
+  .scale .mark.down .lbl { top: 32px; }
+  .scale .mark .lbl b { display: block; font-size: clamp(13px, 1.4vw, 17px); }
+
+  /* ---------- salt timeline ---------- */
+  .timeline { display: grid; grid-template-columns: 1fr 3fr 1.3fr 1.6fr; gap: 6px; margin: 1.4em 0 .6em; }
+  .timeline > div { border-radius: 10px; padding: 14px 12px; min-height: 120px; }
+  .timeline .t-ok { background: rgba(124,192,138,.14); border: 1px solid rgba(124,192,138,.5); }
+  .timeline .t-bad { background: rgba(228,106,90,.14); border: 1px solid rgba(228,106,90,.5); }
+  .timeline .t-best { background: rgba(233,178,100,.18); border: 1px solid rgba(233,178,100,.7); }
+  .timeline b { display: block; font-size: clamp(15px, 1.6vw, 20px); }
+  .timeline span { display: block; font-size: clamp(12px, 1.25vw, 15px); color: var(--muted); margin-top: 4px; }
+  .timeline .when { font-size: 13px; font-weight: 700; letter-spacing: .04em; margin-bottom: 4px; }
+
+  /* ---------- table ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: clamp(14px, 1.5vw, 19px); }
+  th, td { text-align: left; padding: .55em .7em; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: .85em; }
+  td.num { font-variant-numeric: tabular-nums; color: var(--gold); font-weight: 700; white-space: nowrap; }
+
+  /* ---------- myth cards ---------- */
+  .myth { display: flex; flex-direction: column; gap: .3em; }
+  .myth .q { text-decoration: line-through; text-decoration-color: var(--bad); color: var(--muted); font-size: clamp(14px, 1.4vw, 17px); }
+  .myth .a { font-size: clamp(14px, 1.45vw, 18px); }
+
+  /* ---------- checklist ---------- */
+  .check li { display: flex; gap: .7em; align-items: flex-start; padding: .45em 0; border-bottom: 1px solid var(--line); list-style: none; }
+  .check { padding: 0; margin: 0; columns: 2; column-gap: 32px; }
+  .check li { break-inside: avoid; }
+  .check input { width: 20px; height: 20px; margin-top: .25em; accent-color: var(--crust); flex: none; cursor: pointer; }
+  .check label { cursor: pointer; font-size: clamp(14px, 1.45vw, 18px); }
+  .check input:checked + label { color: var(--muted); text-decoration: line-through; }
+
+  /* ---------- quiz ---------- */
+  .quiz { display: grid; gap: 18px; }
+  .quiz .qbox { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; }
+  .quiz .qtext { font-weight: 700; margin: 0 0 .6em; font-size: clamp(15px, 1.6vw, 20px); }
+  .quiz .opts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .quiz button {
+    font: inherit; font-size: clamp(14px, 1.4vw, 17px); color: var(--text); background: var(--bg-2);
+    border: 1px solid var(--line); border-radius: 10px; padding: .45em .9em; cursor: pointer;
+  }
+  .quiz button:hover { border-color: var(--gold); }
+  .quiz button.right { border-color: var(--ok); background: rgba(124,192,138,.18); }
+  .quiz button.wrong { border-color: var(--bad); background: rgba(228,106,90,.18); }
+  .quiz .fb { margin: .6em 0 0; font-size: clamp(13px, 1.3vw, 16px); color: var(--muted); min-height: 1.4em; }
+
+  /* ---------- chrome ---------- */
+  .progress { position: fixed; left: 0; top: 0; height: 4px; background: var(--crust); width: 0; transition: width .3s; z-index: 10; }
+  .nav {
+    position: fixed; left: 0; right: 0; bottom: 0; height: 64px; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 clamp(16px, 3vw, 32px);
+    background: linear-gradient(transparent, rgba(23,18,15,.92) 40%);
+  }
+  .nav button {
+    font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; width: 44px; height: 40px; cursor: pointer; font-size: 18px;
+  }
+  .nav button:hover:not(:disabled) { border-color: var(--gold); }
+  .nav button:disabled { opacity: .35; cursor: default; }
+  .nav .count { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .nav .hint { font-size: 12px; color: var(--muted); }
+  .nav .group { display: flex; gap: 8px; align-items: center; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 900px) {
+    .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .g3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .flow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .check { columns: 1; }
+  }
+  @media (max-width: 640px) {
+    .slide { justify-content: flex-start; padding-top: 36px; }
+    .g2, .g3, .g4 { grid-template-columns: 1fr; }
+    .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .timeline { grid-template-columns: 1fr; }
+    .timeline > div { min-height: 0; }
+    .nav .hint { display: none; }
+    .scale .mark .lbl { font-size: 10px; }
+    .scale .mark .lbl b { font-size: 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .slide { transition: none; }
+  }
+  @media print {
+    body { overflow: visible; }
+    .deck { position: static; }
+    .slide { position: relative; opacity: 1; visibility: visible; transform: none; min-height: 100vh; page-break-after: always; }
+    .nav, .progress { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<main class="deck" id="deck">
+
+  <!-- 1 Title -->
+  <section class="slide title-slide" data-title="封面">
+    <div class="inner">
+      <div class="kicker">新手入門 · 平底鍋篇</div>
+      <h1>在家用平底鍋<br>煎出<span>好吃的牛排</span></h1>
+      <p class="lead">不靠天分、不靠手感，靠三件事：<strong>乾燥的表面</strong>、<strong>夠熱的鍋</strong>、<strong>一支溫度計</strong>。</p>
+      <svg class="steak-art" viewBox="0 0 360 200" role="img" aria-label="牛排剖面示意圖：外層褐色焦殼，中心粉紅">
+        <ellipse cx="180" cy="100" rx="170" ry="88" fill="#6b3414"/>
+        <ellipse cx="180" cy="100" rx="160" ry="79" fill="#9a5a2e"/>
+        <ellipse cx="180" cy="100" rx="148" ry="70" fill="#c98872"/>
+        <ellipse cx="180" cy="100" rx="128" ry="56" fill="#e07a7f"/>
+        <path d="M30 70 Q 60 40 110 34" stroke="#f1e2c8" stroke-width="10" fill="none" stroke-linecap="round" opacity=".85"/>
+        <text x="180" y="106" text-anchor="middle" fill="#fff" font-size="18" font-weight="700" font-family="sans-serif">中心：熟度剛好</text>
+        <text x="300" y="190" text-anchor="middle" fill="#e9b264" font-size="14" font-family="sans-serif">外層：褐色焦殼</text>
+      </svg>
+      <p class="source">知識來源：煎牛排 LLM Wiki（<code>steak-wiki/wiki/</code>），共 11 頁、8 份原始資料。按 → 或空白鍵開始。</p>
+    </div>
+  </section>
+
+  <!-- 2 Goal -->
+  <section class="slide" data-title="什麼是好吃的牛排">
+    <div class="inner">
+      <div class="kicker">先定義目標</div>
+      <h2>「好吃的牛排」＝兩件事同時做到</h2>
+      <div class="grid g2">
+        <div class="card">
+          <div class="big-num hl-crust">外</div>
+          <h3>表面有香脆的褐色焦殼</h3>
+          <p>靠的是<strong>梅納反應</strong>：表面要乾、鍋要夠熱。</p>
+        </div>
+        <div class="card">
+          <div class="big-num hl-rare">內</div>
+          <h3>裡面熟度均勻、剛好</h3>
+          <p>靠的是<strong>勤翻面</strong>、<strong>用溫度計</strong>，並把起鍋後的<strong>餘溫加熱</strong>算進去。</p>
+        </div>
+      </div>
+      <div class="callout"><p>接下來每一個步驟，都是為了這兩個目標服務。</p></div>
+      <p class="source">Wiki 頁面：<code>quick-start.md</code></p>
+    </div>
+  </section>
+
+  <!-- 3 Flow -->
+  <section class="slide" data-title="整體流程">
+    <div class="inner">
+      <div class="kicker">全流程地圖</div>
+      <h2>六個階段，一次看懂</h2>
+      <div class="flow">
+        <div class="step"><b>撒鹽</b><span>至少 45 分鐘前<br>最好前一晚</span></div>
+        <div class="step"><b>熱油</b><span>厚重平底鍋<br>油燒到冒煙</span></div>
+        <div class="step"><b>勤翻面</b><span>每 15–30 秒<br>翻一次</span></div>
+        <div class="step"><b>加奶油</b><span>最後 1–2 分鐘<br>側邊也要煎</span></div>
+        <div class="step"><b>量溫起鍋</b><span>中心「接近」<br>目標就起鍋</span></div>
+        <div class="step"><b>靜置再切</b><span>溫度到了<br>就切</span></div>
+      </div>
+      <p class="lead" style="margin-top:1.2em">後面的投影片會逐一說明：<strong>每一步怎麼做</strong>，以及<strong>為什麼</strong>。</p>
+      <p class="source">Wiki 頁面：<code>quick-start.md</code>、<code>pan-searing-method.md</code></p>
+    </div>
+  </section>
+
+  <!-- 4 Maillard -->
+  <section class="slide" data-title="梅納反應">
+    <div class="inner">
+      <div class="kicker">原理 ①</div>
+      <h2>褐色焦殼從哪來？梅納反應</h2>
+      <p class="lead">梅納反應（Maillard reaction）是蛋白質和糖遇熱，產生新風味、香氣與褐色的一連串反應。關鍵是<strong>表面溫度</strong>。</p>
+      <div class="scale" aria-label="表面溫度示意尺">
+        <div class="bar"></div>
+        <div class="mark down" style="left:2%"><i></i><span class="lbl"><b>冰箱</b>約 4°C</span></div>
+        <div class="mark up" style="left:62.5%"><i></i><span class="lbl"><b>100°C</b>表面有水：卡在這裡<br>牛排只會變灰</span></div>
+        <div class="mark down" style="left:93%"><i></i><span class="lbl"><b>149°C 以上</b>表面乾了：<br>梅納反應全面啟動</span></div>
+      </div>
+      <div class="callout"><p>只要表面還有水，溫度就上不去。<strong>表面越乾 → 越快上色 → 中心越不容易煎過頭。</strong></p></div>
+      <p class="source">Wiki 頁面：<code>maillard-reaction.md</code></p>
+    </div>
+  </section>
+
+  <!-- 5 Why dry -->
+  <section class="slide" data-title="為什麼表面要乾">
+    <div class="inner">
+      <div class="kicker">原理 ②</div>
+      <h2>為什麼「乾」這麼重要？</h2>
+      <div class="grid g2">
+        <div class="card">
+          <div class="big-num">× 5</div>
+          <h3>蒸發水分，超級耗能</h3>
+          <p>把水變成蒸氣的能量，大約是把同樣的水從冰冷加熱到沸騰的 5 倍。煎牛排時，大部分的熱都花在蒸發表面水分上。</p>
+        </div>
+        <div class="card">
+          <div class="big-num">2 種</div>
+          <h3>讓表面變乾的方法</h3>
+          <p>① 下鍋前用廚房紙巾<strong>徹底拍乾</strong><br>② 更好：<strong>預先鹽漬</strong>，放冰箱網架上不加蓋風乾</p>
+        </div>
+      </div>
+      <div class="callout warn"><p><b>迷思破解：</b>「大火煎表面能封住肉汁」是錯的。煎過的表面沒有形成任何屏障；煎表面是為了<strong>風味和口感</strong>，不是鎖汁。</p></div>
+      <p class="source">Wiki 頁面：<code>maillard-reaction.md</code>、<code>dry-brining.md</code></p>
+    </div>
+  </section>
+
+  <!-- 6 Salt timeline -->
+  <section class="slide" data-title="撒鹽時機">
+    <div class="inner">
+      <div class="kicker">步驟 ① 預先鹽漬</div>
+      <h2>什麼時候撒鹽？時機決定成敗</h2>
+      <div class="timeline">
+        <div class="t-ok"><div class="when ok">剛撒完</div><b>✅ 可以</b><span>鹽還沒溶，表面乾，煎得出硬脆表面</span></div>
+        <div class="t-bad"><div class="when bad">3 – 40 分鐘</div><b>❌ 最糟</b><span>鹽把肉汁吸到表面變成水珠，熱量全拿去蒸發，上色差</span></div>
+        <div class="t-ok"><div class="when ok">45 分鐘以上</div><b>✅ 好</b><span>鹽水已被吸回肉裡，表面變乾</span></div>
+        <div class="t-best"><div class="when" style="color:var(--gold)">冰箱過夜</div><b>⭐ 最佳</b><span>鹽滲得更深、更入味；表面只多失水約 5%</span></div>
+      </div>
+      <p><strong>結論：</strong>要嘛<strong>下鍋前一刻</strong>才撒，要嘛<strong>至少 45 分鐘前</strong>撒（最好前一晚）。新手建議範圍：45 分鐘～24 小時。</p>
+      <p class="source">Wiki 頁面：<code>dry-brining.md</code>（含 Perfect Pan-Seared Steaks 的撒鹽間隔實驗）</p>
+    </div>
+  </section>
+
+  <!-- 7 How to salt -->
+  <section class="slide" data-title="怎麼撒鹽">
+    <div class="inner">
+      <div class="kicker">步驟 ① 預先鹽漬</div>
+      <h2>怎麼撒鹽？</h2>
+      <div class="grid g2">
+        <ul class="clean">
+          <li>用<strong>猶太鹽</strong>（kosher salt），顆粒好撒、不結塊</li>
+          <li>從約 <strong>20–25 公分</strong>高處撒下，比較均勻</li>
+          <li><strong>上下兩面、側邊</strong>都要撒到</li>
+          <li>放在<strong>網架</strong>上（架在烤盤上），<strong>不加蓋</strong></li>
+        </ul>
+        <ul class="clean">
+          <li>下鍋前<strong>不要沖水</strong>：不會過鹹，沖水反而讓表面變濕</li>
+          <li>不要用紙巾<strong>擦掉鹽水</strong>：鹽也會被擦掉</li>
+          <li>不要<strong>煎好才撒鹽</strong>：表面很鹹、裡面沒味道</li>
+          <li>上桌時可再撒<strong>片狀海鹽</strong>增加口感</li>
+        </ul>
+      </div>
+      <div class="callout warn"><p>⚠️ 撒完鹽<b>不馬上煎，就放冰箱</b>。</p></div>
+      <p class="source">Wiki 頁面：<code>dry-brining.md</code>、<code>food-safety.md</code></p>
+    </div>
+  </section>
+
+  <!-- 8 Tempering myth -->
+  <section class="slide" data-title="回溫迷思">
+    <div class="inner">
+      <div class="kicker">迷思破解</div>
+      <h2>煎前要「回溫」20–30 分鐘？不用</h2>
+      <div class="grid g2">
+        <div>
+          <table>
+            <thead><tr><th>放室溫（約 21°C）多久</th><th>牛排中心溫度</th></tr></thead>
+            <tbody>
+              <tr><td>剛從冰箱拿出來</td><td class="num">約 3.3°C</td></tr>
+              <tr><td>20 分鐘</td><td class="num">約 4.3°C</td></tr>
+              <tr><td>1 小時 50 分鐘</td><td class="num">約 9.8°C</td></tr>
+            </tbody>
+          </table>
+          <p class="small muted">實驗：一塊約 425 公克的紐約客切半，一半放冰箱、一半放室溫。</p>
+        </div>
+        <div class="card">
+          <h3>結果</h3>
+          <p>20 分鐘中心只升不到 1°C。回溫與冷藏的牛排一起煎，熟的速度、均勻度、上色速度<strong>幾乎一樣</strong>。</p>
+          <h3 style="margin-top:.8em">該怎麼做</h3>
+          <p>直接從冰箱拿出來，把時間花在<strong>讓表面變乾</strong>。</p>
+        </div>
+      </div>
+      <p class="source">Wiki 頁面：<code>tempering-before-cooking.md</code></p>
+    </div>
+  </section>
+
+  <!-- 9 Pan & oil -->
+  <section class="slide" data-title="下鍋">
+    <div class="inner">
+      <div class="kicker">步驟 ② 熱油下鍋</div>
+      <h2>鍋要重、油要冒煙</h2>
+      <div class="grid g3">
+        <div class="card"><div class="big-num">鍋</div><h3>厚重的平底鍋</h3><p>能存住熱，牛排放下去溫度不會一下掉太多。</p></div>
+        <div class="card"><div class="big-num">油</div><h3>燒到冒煙再下</h3><p>鍋或油不夠熱 → 表面溫度上不去 → 上色差。</p></div>
+        <div class="card"><div class="big-num">椒</div><h3>下鍋前撒黑胡椒</h3><p>鹽已經提前撒好了，下鍋前補上黑胡椒。</p></div>
+      </div>
+      <div class="callout"><p>參考數據：Serious Eats 的對照實驗把鍋溫設在 <strong>177°C</strong>（豬排實驗，牛排可參考）。</p></div>
+      <p class="source">Wiki 頁面：<code>pan-searing-method.md</code></p>
+    </div>
+  </section>
+
+  <!-- 10 Flipping -->
+  <section class="slide" data-title="翻面">
+    <div class="inner">
+      <div class="kicker">步驟 ③ 勤翻面</div>
+      <h2>「只能翻一次」？其實每 15–30 秒翻一次更好</h2>
+      <div class="grid g3">
+        <div class="card"><div class="big-num">快</div><h3>熟得更快</h3><p>最多可快 30%。</p></div>
+        <div class="card"><div class="big-num">勻</div><h3>內外更均勻</h3><p>表面下那層灰色過熟帶更薄。</p></div>
+        <div class="card"><div class="big-num">平</div><h3>比較不會捲</h3><p>減少邊緣捲起、拱起。</p></div>
+      </div>
+      <div class="callout">
+        <p><b>為什麼？</b>勤翻面時每一面都不會持續加熱太久、也不會冷卻太多，效果接近「兩面同時、溫和地加熱」，熱慢慢往中心走。</p>
+      </div>
+      <p class="small muted" style="margin-top:1em">💡 用叉子翻也沒問題：實驗中用叉子到處戳的牛排，重量流失和用夾子的<b>完全一樣</b>。</p>
+      <p class="source">Wiki 頁面：<code>flipping.md</code></p>
+    </div>
+  </section>
+
+  <!-- 11 Butter & edges -->
+  <section class="slide" data-title="奶油與側邊">
+    <div class="inner">
+      <div class="kicker">步驟 ④ 收尾的風味</div>
+      <h2>奶油最後才加，側邊別忘了</h2>
+      <div class="grid g2">
+        <div class="card">
+          <h3>🧈 先油後奶油</h3>
+          <p>奶油「燒焦」燒的是裡面的<strong>乳蛋白</strong>（融化時的白色小顆粒），不管混不混油都會焦。所以一開始用油，中心溫度<strong>快到目標</strong>時才加奶油，再煎約 <strong>1–2 分鐘</strong>。</p>
+          <p class="small" style="margin-top:.6em"><span class="tag bad">迷思</span>奶油混油可以提高發煙點</p>
+        </div>
+        <div class="card">
+          <h3>🥩 側邊油脂要煎</h3>
+          <p>厚牛排平放時，側邊完全碰不到鍋，但那常是<strong>油脂最多、最好吃</strong>的部分。用夾子把牛排立起來，把側邊也煎上色。</p>
+        </div>
+      </div>
+      <p class="source">Wiki 頁面：<code>oil-and-butter.md</code>、<code>pan-searing-method.md</code></p>
+    </div>
+  </section>
+
+  <!-- 12 Doneness methods -->
+  <section class="slide" data-title="判斷熟度">
+    <div class="inner">
+      <div class="kicker">步驟 ⑤ 判斷熟度</div>
+      <h2>三種判斷熟度的方法，只有一種可靠</h2>
+      <div class="grid g3">
+        <div class="card">
+          <span class="tag ok">推薦</span>
+          <h3 style="margin-top:.5em">🌡️ 溫度計</h3>
+          <p>插進最厚處的<strong>中心</strong>量溫度。唯一可靠的方法，最值得的投資。</p>
+        </div>
+        <div class="card">
+          <span class="tag bad">不可靠</span>
+          <h3 style="margin-top:.5em">👆 按壓法</h3>
+          <p>每個人的手軟硬不同；厚薄、油花、部位不同的肉，按起來也都不一樣。</p>
+        </div>
+        <div class="card">
+          <span class="tag info">最後手段</span>
+          <h3 style="margin-top:.5em">🔪 切開看</h3>
+          <p>熱牛排切開時<strong>看起來比實際更生</strong>，照「看起來剛好」煎，吃的時候已過熟。</p>
+        </div>
+      </div>
+      <p class="source">Wiki 頁面：<code>doneness-check.md</code></p>
+    </div>
+  </section>
+
+  <!-- 13 Temperatures -->
+  <section class="slide" data-title="溫度對照">
+    <div class="inner">
+      <div class="kicker">步驟 ⑤ 判斷熟度</div>
+      <h2>中心溫度怎麼看？</h2>
+      <div class="scale" aria-label="中心溫度對照尺，45 到 80 度">
+        <div class="bar"></div>
+        <div class="mark up" style="left:22.9%"><i></i><span class="lbl"><b class="hl-rare">52–54°C</b>三分熟<br>（料理媒體）</span></div>
+        <div class="mark down" style="left:51.4%"><i></i><span class="lbl"><b>63°C</b>官方最低安全溫度<br>原塊牛肉＋靜置 3 分鐘</span></div>
+        <div class="mark up" style="left:74.3%"><i></i><span class="lbl"><b>71°C</b>絞肉</span></div>
+        <div class="mark down" style="left:82.9%"><i></i><span class="lbl"><b>74°C</b>剩菜重新加熱</span></div>
+      </div>
+      <div class="callout warn"><p>⚠️ 三分熟（52–54°C）<b>低於</b>美國官方原塊牛肉的最低安全溫度 63°C。吃低於 63°C 的熟度，是你自己的風險選擇。</p></div>
+      <p class="source">Wiki 頁面：<code>doneness-check.md</code>、<code>food-safety.md</code></p>
+    </div>
+  </section>
+
+  <!-- 14 Resting -->
+  <section class="slide" data-title="靜置">
+    <div class="inner">
+      <div class="kicker">步驟 ⑥ 靜置 · 新觀念</div>
+      <h2>靜置不是為了「鎖住肉汁」，是為了控制溫度</h2>
+      <div class="grid g2">
+        <div class="card">
+          <span class="tag bad">舊說法</span>
+          <h3 style="margin-top:.5em">固定靜置 10 分鐘，讓肉汁回流</h3>
+          <p>2009 年的實驗沒有控制「切的那一刻的溫度」。</p>
+        </div>
+        <div class="card">
+          <span class="tag ok">新觀念（2025）</span>
+          <h3 style="margin-top:.5em">看溫度，不看時間</h3>
+          <p>肉汁流多少，取決於<strong>切的當下溫度</strong>，與有沒有靜置無關。盲測 30 回合，只有 16 次選靜置的較多汁，跟擲銅板差不多。</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><b>怎麼做：</b>中心溫度<strong>接近</strong>目標就起鍋 → 起鍋後溫度還會上升（餘溫加熱，carryover cooking）→ 持續量，<strong>一到目標就切</strong>。要提早幾度起鍋沒有通用規則，靠溫度計累積經驗。</p>
+      </div>
+      <p class="source">Wiki 頁面：<code>resting.md</code></p>
+    </div>
+  </section>
+
+  <!-- 15 Food safety -->
+  <section class="slide" data-title="食品安全">
+    <div class="inner">
+      <div class="kicker">食品安全</div>
+      <h2>官方四原則：清潔、分開、煮熟、冷藏</h2>
+      <div class="grid g4">
+        <div class="card"><div class="big-num">洗</div><h3>清潔</h3><p>常洗手、清潔砧板與檯面。</p></div>
+        <div class="card"><div class="big-num">分</div><h3>分開</h3><p>生肉與其他食物分開。</p></div>
+        <div class="card"><div class="big-num">熟</div><h3>煮熟</h3><p>用溫度計確認中心溫度。</p></div>
+        <div class="card"><div class="big-num">冰</div><h3>冷藏</h3><p>吃不完盡快冷藏。</p></div>
+      </div>
+      <div class="callout warn">
+        <p>有害細菌<b>看不到、聞不到、嘗不出來</b>。若以官方安全溫度為目標：要<b>在鍋中</b>就讓中心達到 63°C 再起鍋，不能靠餘溫補足。</p>
+      </div>
+      <p class="source">Wiki 頁面：<code>food-safety.md</code>（基準資料：FoodSafety.gov、USDA FSIS）</p>
+    </div>
+  </section>
+
+  <!-- 16 Myths -->
+  <section class="slide" data-title="迷思總整理">
+    <div class="inner">
+      <div class="kicker">複習</div>
+      <h2>六個常見迷思，一次破解</h2>
+      <div class="grid g3">
+        <div class="card myth"><span class="q">大火煎表面能封住肉汁</span><span class="a">煎表面是為了風味和口感，不會形成屏障。</span></div>
+        <div class="card myth"><span class="q">牛排只能翻一次</span><span class="a">每 15–30 秒翻一次，熟得更快更均勻。</span></div>
+        <div class="card myth"><span class="q">叉子一戳肉汁就流光</span><span class="a">實驗中重量流失與用夾子完全相同。</span></div>
+        <div class="card myth"><span class="q">煎前要回溫 20–30 分鐘</span><span class="a">中心只升不到 1°C，幾乎沒效果。</span></div>
+        <div class="card myth"><span class="q">帶骨牛排比較有味道</span><span class="a">骨頭和肉沒有風味交換；但骨頭旁的肉較多汁。</span></div>
+        <div class="card myth"><span class="q">早撒鹽會讓肉變乾變硬</span><span class="a">表面乾是好事；鹽讓內部保留更多水分。</span></div>
+      </div>
+      <p class="source">Wiki 頁面：<code>maillard-reaction.md</code>、<code>flipping.md</code>、<code>tempering-before-cooking.md</code>、<code>bone-in-vs-boneless.md</code>、<code>dry-brining.md</code></p>
+    </div>
+  </section>
+
+  <!-- 17 Checklist -->
+  <section class="slide" data-title="小抄">
+    <div class="inner">
+      <div class="kicker">實作小抄 · 可以勾選</div>
+      <h2>下廚時照著做</h2>
+      <ul class="check">
+        <li><input type="checkbox" id="c1"><label for="c1">前一晚（至少 45 分鐘前）用猶太鹽撒滿各面，冰箱網架上不加蓋</label></li>
+        <li><input type="checkbox" id="c2"><label for="c2">從冰箱直接拿出來，不必回溫；表面濕就拍乾</label></li>
+        <li><input type="checkbox" id="c3"><label for="c3">下鍋前撒黑胡椒</label></li>
+        <li><input type="checkbox" id="c4"><label for="c4">厚重平底鍋放油，燒到冒煙</label></li>
+        <li><input type="checkbox" id="c5"><label for="c5">放入牛排，每 15–30 秒翻一次</label></li>
+        <li><input type="checkbox" id="c6"><label for="c6">快到目標溫度時加奶油，再煎 1–2 分鐘</label></li>
+        <li><input type="checkbox" id="c7"><label for="c7">厚牛排立起來，把側邊油脂煎上色</label></li>
+        <li><input type="checkbox" id="c8"><label for="c8">溫度計插最厚處中心，「接近」目標就起鍋</label></li>
+        <li><input type="checkbox" id="c9"><label for="c9">持續量溫，到目標就切（不必死等固定時間）</label></li>
+        <li><input type="checkbox" id="c10"><label for="c10">上桌撒片狀海鹽；處理完生肉要洗手、清砧板</label></li>
+      </ul>
+      <p class="source">Wiki 頁面：<code>quick-start.md</code></p>
+    </div>
+  </section>
+
+  <!-- 18 Quiz -->
+  <section class="slide" data-title="小測驗">
+    <div class="inner">
+      <div class="kicker">小測驗 · 點選答案</div>
+      <h2>你記住了嗎？</h2>
+      <div class="quiz">
+        <div class="qbox">
+          <p class="qtext">Q1. 撒鹽後，哪個時間點下鍋「最糟」？</p>
+          <div class="opts">
+            <button data-ok="0">立刻下鍋</button>
+            <button data-ok="1">撒完 20 分鐘</button>
+            <button data-ok="0">撒完 1 小時</button>
+          </div>
+          <p class="fb" data-fb="撒鹽後 3–40 分鐘，表面正在冒鹽水，熱量都拿去蒸發，上色最差。"></p>
+        </div>
+        <div class="qbox">
+          <p class="qtext">Q2. 判斷熟度最可靠的方法是？</p>
+          <div class="opts">
+            <button data-ok="0">用手指按壓</button>
+            <button data-ok="0">切開看顏色</button>
+            <button data-ok="1">溫度計量中心溫度</button>
+          </div>
+          <p class="fb" data-fb="按壓法因人、因肉而異；切開看會誤判成比實際更生。溫度計是唯一可靠的方法。"></p>
+        </div>
+        <div class="qbox">
+          <p class="qtext">Q3. 奶油應該什麼時候加？</p>
+          <div class="opts">
+            <button data-ok="0">一開始就用奶油煎</button>
+            <button data-ok="1">快起鍋前 1–2 分鐘</button>
+            <button data-ok="0">混油一起用就不會焦</button>
+          </div>
+          <p class="fb" data-fb="奶油裡的乳蛋白不管混不混油都會焦，所以先用油，最後才加奶油。"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 19 Sources & gaps -->
+  <section class="slide" data-title="資料來源">
+    <div class="inner">
+      <div class="kicker">資料來源</div>
+      <h2>這份簡報根據什麼？</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>📚 原始資料（經 Wiki 整理）</h3>
+          <ul class="clean small">
+            <li><span class="tag ok">A</span>7 Myths About Cooking Steak（Serious Eats, 2013）</li>
+            <li><span class="tag ok">A</span>Perfect Pan-Seared Steaks（Serious Eats, 2011）</li>
+            <li><span class="tag ok">A</span>Meat Resting Science（Serious Eats, 2025）</li>
+            <li><span class="tag ok">A</span>FoodSafety.gov 肉類烘烤表（食品安全基準）</li>
+            <li><span class="tag ok">A</span>USDA FSIS 最低安全溫度表</li>
+            <li><span class="tag info">B</span>Dry Brine 指南、Maillard 介紹、2009 靜置舊文</li>
+          </ul>
+        </div>
+      </div>
+      <p class="source">Wiki：<code>steak-wiki/wiki/index.md</code>。可信度分級：A＝權威／實證，B＝專業經驗。</p>
+    </div>
+  </section>
+
+</main>
+
+<nav class="nav" aria-label="簡報導覽">
+  <div class="group">
+    <button id="prev" aria-label="上一張">←</button>
+    <button id="next" aria-label="下一張">→</button>
+  </div>
+  <span class="hint">← → 換頁 · F 全螢幕</span>
+  <span class="count" id="count"></span>
+</nav>
+
+<script>
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var prevBtn = document.getElementById('prev');
+  var nextBtn = document.getElementById('next');
+  var count = document.getElementById('count');
+  var progress = document.getElementById('progress');
+  var i = 0;
+
+  function show(n) {
+    n = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function (s, k) {
+      s.classList.toggle('active', k === n);
+      s.classList.toggle('prev', k < n);
+      s.setAttribute('aria-hidden', k === n ? 'false' : 'true');
+    });
+    i = n;
+    slides[n].scrollTop = 0;
+    count.textContent = (n + 1) + ' / ' + slides.length;
+    progress.style.width = ((n + 1) / slides.length * 100) + '%';
+    prevBtn.disabled = n === 0;
+    nextBtn.disabled = n === slides.length - 1;
+    document.title = '平底鍋煎牛排入門 · ' + (slides[n].dataset.title || '');
+    if (location.hash !== '#' + (n + 1)) history.replaceState(null, '', '#' + (n + 1));
+  }
+
+  prevBtn.addEventListener('click', function () { show(i - 1); });
+  nextBtn.addEventListener('click', function () { show(i + 1); });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.target.tagName === 'INPUT') return;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); show(i + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(i - 1); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(slides.length - 1);
+    else if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) { document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+      else { document.exitFullscreen && document.exitFullscreen(); }
+    }
+  });
+
+  var x0 = null, y0 = null;
+  document.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) show(i + (dx < 0 ? 1 : -1));
+    x0 = y0 = null;
+  });
+
+  // quiz
+  document.querySelectorAll('.qbox').forEach(function (box) {
+    var fb = box.querySelector('.fb');
+    box.querySelectorAll('button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        box.querySelectorAll('button').forEach(function (o) { o.classList.remove('right', 'wrong'); });
+        var ok = b.dataset.ok === '1';
+        b.classList.add(ok ? 'right' : 'wrong');
+        fb.textContent = (ok ? '✅ 答對了！' : '❌ 再想想。') + fb.dataset.fb;
+      });
+    });
+  });
+
+  var start = parseInt((location.hash || '').slice(1), 10);
+  show(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>
